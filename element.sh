@@ -7,11 +7,16 @@ then
 
 else
   # sql query use or condition
-  RESULT=$($PSQL "select * from elements where atomic_number = $1 or symbol = '$1' or name = '$1'")
-  echo "$RESULT" | while read ATOMIC_NUMBER BAR SYMBOL BAR NAME
-  do
-    echo "The element with atomic number $ATOMIC_NUMBER is $NAME ($SYMBOL). It's a nonmetal, with a mass of 1.008 amu. Hydrogen has a melting point of -259.1 celsius and a boiling point of -252.9 celsius."
-  done
+  RESULT=$($PSQL "select elements.atomic_number, symbol, name, types.type, atomic_mass,melting_point_celsius,boiling_point_celsius from elements left join properties on elements.atomic_number = properties.atomic_number left join types on properties.type_id = types.type_id where elements.atomic_number = $1 or symbol = '$1' or name = '$1'")
+  if [[ $RESULT ]]
+  then
+    echo "$RESULT" | while read ATOMIC_NUMBER BAR SYMBOL BAR NAME BAR TYPE BAR ATOMIC_MASS BAR MELTING_POINT BAR BOILING_POINT
+    do
+      echo "The element with atomic number $ATOMIC_NUMBER is $NAME ($SYMBOL). It's a $TYPE, with a mass of $ATOMIC_MASS amu. $NAME has a melting point of $MELTING_POINT celsius and a boiling point of $BOILING_POINT celsius."
+    done
+  else
+    echo "I could not find that element in the database."
+  fi
 
 
 
